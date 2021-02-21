@@ -156,7 +156,7 @@
 	  </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <!-- <script src="https://unpkg.com/mathquill/build/mathquill.js"></script> -->
-    <script src="./js/libs/mathquill.min.js"></script>
+    <script src="../js/libs/mathquill.min.js"></script>
   </head>
   <body>
     
@@ -175,6 +175,8 @@
       import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 
       const scenes = [];
+
+      var params = { 'temperature': 150 };
       
       const gui = new GUI();
       
@@ -193,6 +195,8 @@
         for (let i=0; i<floatEqns.length; ++i) {
           MQ.StaticMath(floatEqns.item(i));
         }
+
+        gui.add(params, 'temperature', 0, 300);
 
 		    const balls = 20;
 		    const size = .25;
@@ -325,7 +329,7 @@
 
 				    point.fromBufferAttribute( scene.userData.geometry1.attributes.position, i );
 
-				    scene.userData.view.displacement( point.x, point.y, point.z, t / 5, offset );
+				    scene.userData.view.displacement( point.x, point.y, point.z, t / 5, offset, params );
 
 				    position.setXYZ( i, point.x + offset.x, point.y + offset.y, point.z + offset.z );
 
@@ -340,6 +344,26 @@
 	    }
 
 	  </script>
+
+		<div class="view">
+
+		<script>
+
+			parent = document.scripts[ document.scripts.length - 1 ].parentNode;
+			parent.displacement = function ( x, y, z, t, target, params ) {
+        var A = params.temperature/1000;
+        var dx = A*Math.random();
+        var dy = A*Math.random();
+        var dz = A*Math.random();
+				return target.set( x + dx, y + dy, z + dz );
+			};
+
+			parent.lattice = false;
+
+		</script>
+
+		</div>
+
     <h1>Fundamentals of Thermodynamics</h1>
     <h2>Review</h2>
     
