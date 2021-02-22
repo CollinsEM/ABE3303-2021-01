@@ -1,640 +1,638 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-	  <title>ABE3303 - Lecture 03 - Fundamentals of Thermodynamics</title>
-	  <meta charset="utf-8">
-	  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	  <link type="text/css" rel="stylesheet" href="https://unpkg.com/mathquill/build/mathquill.css">
-	  <style>
-	    * {
-		      box-sizing: border-box;
-		      -moz-box-sizing: border-box;
-	    }
-
-	    body {
-		      background-color: #fff;
-		      color: #444;
-	        font-family: Monospace;
-	        font-size: 13px;
-	        line-height: 24px;
-	        overscroll-behavior: none;
-		      margin: auto;
-		      padding: .5in;
-		      max-width: 7in;
-		      text-align: justify;
-	    }
-
-	    a {
-		      color: #08f;
-	        text-decoration: none;
-	    }
-
-      a:hover {
-	        text-decoration: underline;
-      }
-
-      button {
-	        cursor: pointer;
-	        text-transform: uppercase;
-      }
-
-      #info {
-	        position: absolute;
-	        top: 0px;
-	        width: 100%;
-	        padding: 10px;
-	        box-sizing: border-box;
-	        text-align: center;
-	        -moz-user-select: none;
-	        -webkit-user-select: none;
-	        -ms-user-select: none;
-	        user-select: none;
-	        pointer-events: none;
-	        z-index: 1; /* TODO Solve this in HTML */
-		      left: 0px;
-	    }
-
-      a, button, input, select {
-	        pointer-events: auto;
-      }
-
-      .dg.ac {
-	        -moz-user-select: none;
-	        -webkit-user-select: none;
-	        -ms-user-select: none;
-	        user-select: none;
-	        z-index: 2 !important; /* TODO Solve this in HTML */
-      }
-
-      #overlay {
-	        position: absolute;
-	        z-index: 2;
-	        top: 0;
-	        left: 0;
-	        width: 100%;
-	        height: 100%;
-	        display: flex;
-	        align-items: center;
-	        justify-content: center;
-	        background: rgba(0,0,0,0.7);
-      }
-
-	    #overlay button {
-		      background: #ffffff;
-		      border: 0;
-		      color: #000000;
-		      padding: 16px 20px;
-		      text-transform: uppercase;
-		      cursor: pointer;
-	    }
-
-      #notSupported {
-	        width: 50%;
-	        margin: auto;
-	        background-color: #f00;
-	        margin-top: 20px;
-	        padding: 10px;
-      }
-      
-	    .view {
-		      width: 5in;
-		      height: 5in;
-		      margin: auto;
-	    }
-
-	    #c {
-		      position: fixed;
-		      left: 0px; top: 0px;
-		      width: 100%;
-		      height: 100%;
-		      background-color: #fff;
-		      z-index: -1;
-	    }
-
-	    .math {
-		      text-align: center;
-	    }
-
-	    .math-frac {
-		      display: inline-block;
-		      vertical-align: middle;
-	    }
-
-	    .math-num {
-		      display: block;
-	    }
-
-	    .math-denom {
-		      display: block;
-		      border-top: 1px solid;
-	    }
-
-	    .math-sqrt {
-		      display: inline-block;
-		      transform: scale(1, 1.3);
-	    }
-
-	    .math-sqrt-stem {
-		      display: inline-block;
-		      border-top: 1px solid;
-		      margin-top: 5px;
-	    }
-      .main{
-          width:1024px;
-          height:1024px;
-      }
-      .mq-inline {
-          border: 0px;
-          padding: 0px;
-          margin:0px;
-      }
-      .mq-float {
-          border: 0px;
-          padding: 0px;
-          margin:4px;
-      }
-	  </style>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <!-- <script src="https://unpkg.com/mathquill/build/mathquill.js"></script> -->
-    <script src="../js/libs/mathquill.min.js"></script>
-  </head>
-  <body>
-    
-    <canvas id="c" width="1903" height="938"></canvas>
-    
-	  <div id="info"><a href="https://canvas.msstate.edu/courses/46965" target="_blank" rel="noopener">ABE 3303</a> - January 19, 2021</div>
-
-	  <script type="module">
-	    /* import * as THREE from '../build/three.module.js'; */
-      import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-      /* import Stats from './jsm/libs/stats.module.js'; */
-      import Stats from 'https://unpkg.com/three/examples/jsm/libs/stats.module.js';
-	    /* import { GUI } from './jsm/libs/dat.gui.module.js'; */
-	    import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js';
-	    /* import { OrbitControls } from './jsm/controls/OrbitControls.js'; */
-      import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
-
-      const scenes = [];
-
-      var params = { 'temperature': 150 };
-      
-      const gui = new GUI();
-      
-	    let views, t, canvas, renderer, stats ;
-
-	    window.onload = init;
-
-	    function init() {
-
-        var MQ = MathQuill.getInterface(2);
-        var inlineEqns = document.getElementsByClassName('mq-inline');
-        for (let i=0; i<inlineEqns.length; ++i) {
-          MQ.StaticMath(inlineEqns.item(i));
-        }
-        var floatEqns = document.getElementsByClassName('mq-float');
-        for (let i=0; i<floatEqns.length; ++i) {
-          MQ.StaticMath(floatEqns.item(i));
-        }
-
-        gui.add(params, 'temperature', 0, 300);
-
-		    const balls = 20;
-		    const size = .25;
-
-		    const colors = [
-			    'rgb(0,127,255)', 'rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(0,255,255)',
-			    'rgb(255,0,255)', 'rgb(255,0,127)', 'rgb(255,255,0)', 'rgb(0,255,127)'
-		    ];
-
-		    canvas = document.getElementById( 'c' );
-
-		    renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
-		    renderer.setPixelRatio( window.devicePixelRatio );
-
-		    views = document.querySelectorAll( '.view' );
-
-		    for ( let n=0; n<views.length; n++ ) {
-			    const scene = new THREE.Scene();
-			    scene.background = new THREE.Color( 0xffffff );
-
-			    const geometry0 = new THREE.BufferGeometry();
-			    const geometry1 = new THREE.BufferGeometry();
-
-			    const vertices = [];
-
-			    if ( views[ n ].lattice ) {
-				    const range = balls / 2;
-				    for ( let i = -range; i <= range; i++ ) {
-					    for ( let j = -range; j <= range; j++ ) {
-						    for ( let k = -range; k <= range; k++ ) {
-							    vertices.push( i, j, k );
-						    }
-					    }
-				    }
-			    }
-          else {
-	          for ( let m = 0; m < Math.pow( balls, 3 ); m++ ) {
-					    const i = balls * Math.random() - balls / 2;
-					    const j = balls * Math.random() - balls / 2;
-					    const k = balls * Math.random() - balls / 2;
-					    vertices.push( i, j, k );
-				    }
-			    }
-
-			    geometry0.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-			    geometry1.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices.slice(), 3 ) );
-
-			    const index = Math.floor( colors.length * Math.random() );
-
-			    const canvas2 = document.createElement( 'canvas' );
-			    canvas2.width = 128;
-			    canvas2.height = 128;
-          
-			    const context = canvas2.getContext( '2d' );
-			    context.arc( 64, 64, 64, 0, 2 * Math.PI );
-			    context.fillStyle = colors[ index ];
-			    context.fill();
-          
-			    const texture = new THREE.CanvasTexture( canvas2 );
-
-			    const material = new THREE.PointsMaterial( { size: size, map: texture, transparent: true, alphaTest: 0.1 } );
-
-			    scene.add( new THREE.Points( geometry0, material ) );
-
-			    scene.userData.view = views[ n ];
-			    scene.userData.geometry1 = geometry1;
-
-			    const camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 100 );
-			    camera.position.set( 0, 0, 1.2 * balls );
-			    scene.userData.camera = camera;
-
-			    const controls = new OrbitControls( camera, views[ n ] );
-			    scene.userData.controls = controls;
-
-			    scenes.push( scene );
-		    }
-		    t = 0;
-		    animate();
-	    }
-
-	    function updateSize() {
-		    const width = canvas.clientWidth;
-		    const height = canvas.clientHeight;
-		    if ( canvas.width !== width || canvas.height != height ) {
-			    renderer.setSize( width, height, false );
-		    }
-	    }
-
-	    function animate() {
-		    render();
-		    requestAnimationFrame( animate );
-	    }
-
-	    function render() {
-		    updateSize();
-		    renderer.setClearColor( 0xffffff );
-		    renderer.setScissorTest( false );
-		    renderer.clear();
-
-		    renderer.setClearColor( 0x000000 );
-		    renderer.setScissorTest( true );
-
-		    scenes.forEach( function ( scene ) {
-			    const rect = scene.userData.view.getBoundingClientRect();
-          
-			    // check if it's offscreen. If so skip it
-			    if ( rect.bottom < 0 || rect.top > renderer.domElement.clientHeight ||
-					     rect.right < 0 || rect.left > renderer.domElement.clientWidth ) {
-				    return; // it's off screen
-          }
-
-			    // set the viewport
-			    const width = rect.right - rect.left;
-			    const height = rect.bottom - rect.top;
-			    const left = rect.left;
-			    const bottom = renderer.domElement.clientHeight - rect.bottom;
-
-			    renderer.setViewport( left, bottom, width, height );
-			    renderer.setScissor( left, bottom, width, height );
-
-			    renderer.render( scene, scene.userData.camera );
-
-			    const points = scene.children[ 0 ];
-			    const position = points.geometry.attributes.position;
-
-			    const point = new THREE.Vector3();
-			    const offset = new THREE.Vector3();
-
-			    for ( let i = 0; i < position.count; i ++ ) {
-
-				    point.fromBufferAttribute( scene.userData.geometry1.attributes.position, i );
-
-				    scene.userData.view.displacement( point.x, point.y, point.z, t / 5, offset, params );
-
-				    position.setXYZ( i, point.x + offset.x, point.y + offset.y, point.z + offset.z );
-
-			    }
-
-			    position.needsUpdate = true;
-
-		    } );
-
-		    t ++;
-
-	    }
-
-	  </script>
-
-		<div class="view">
-
-		<script>
-
-			parent = document.scripts[ document.scripts.length - 1 ].parentNode;
-			parent.displacement = function ( x, y, z, t, target, params ) {
-        var A = params.temperature/1000;
-        var dx = A*Math.random();
-        var dy = A*Math.random();
-        var dz = A*Math.random();
-				return target.set( x + dx, y + dy, z + dz );
-			};
-
-			parent.lattice = false;
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>ABE3303 - Lecture 03 - Fundamentals of Thermodynamics</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="https://unpkg.com/mathquill/build/mathquill.css">
+	<style>
+	 * {
+		 box-sizing: border-box;
+		 -moz-box-sizing: border-box;
+	 }
+
+	 body {
+		 background-color: #fff;
+		 color: #444;
+	   font-family: Monospace;
+	   font-size: 13px;
+	   line-height: 24px;
+	   overscroll-behavior: none;
+		 margin: auto;
+		 padding: .5in;
+		 max-width: 7in;
+		 text-align: justify;
+	 }
+
+	 a {
+		 color: #08f;
+	   text-decoration: none;
+	 }
+
+   a:hover {
+	   text-decoration: underline;
+   }
+
+   button {
+	   cursor: pointer;
+	   text-transform: uppercase;
+   }
+
+   #info {
+	   position: absolute;
+	   top: 0px;
+	   width: 100%;
+	   padding: 10px;
+	   box-sizing: border-box;
+	   text-align: center;
+	   -moz-user-select: none;
+	   -webkit-user-select: none;
+	   -ms-user-select: none;
+	   user-select: none;
+	   pointer-events: none;
+	   z-index: 1; /* TODO Solve this in HTML */
+		 left: 0px;
+	 }
+
+   a, button, input, select {
+	   pointer-events: auto;
+   }
+
+   .dg.ac {
+	   -moz-user-select: none;
+	   -webkit-user-select: none;
+	   -ms-user-select: none;
+	   user-select: none;
+	   z-index: 2 !important; /* TODO Solve this in HTML */
+   }
+
+   #overlay {
+	   position: absolute;
+	   z-index: 2;
+	   top: 0;
+	   left: 0;
+	   width: 100%;
+	   height: 100%;
+	   display: flex;
+	   align-items: center;
+	   justify-content: center;
+	   background: rgba(0,0,0,0.7);
+   }
+
+	 #overlay button {
+		 background: #ffffff;
+		 border: 0;
+		 color: #000000;
+		 padding: 16px 20px;
+		 text-transform: uppercase;
+		 cursor: pointer;
+	 }
+
+   #notSupported {
+	   width: 50%;
+	   margin: auto;
+	   background-color: #f00;
+	   margin-top: 20px;
+	   padding: 10px;
+   }
+   
+	 .view {
+		 width: 5in;
+		 height: 5in;
+		 margin: auto;
+	 }
+
+	 #c {
+		 position: fixed;
+		 left: 0px; top: 0px;
+		 width: 100%;
+		 height: 100%;
+		 background-color: #fff;
+		 z-index: -1;
+	 }
+
+	 .math {
+		 text-align: center;
+	 }
+
+	 .math-frac {
+		 display: inline-block;
+		 vertical-align: middle;
+	 }
+
+	 .math-num {
+		 display: block;
+	 }
+
+	 .math-denom {
+		 display: block;
+		 border-top: 1px solid;
+	 }
+
+	 .math-sqrt {
+		 display: inline-block;
+		 transform: scale(1, 1.3);
+	 }
+
+	 .math-sqrt-stem {
+		 display: inline-block;
+		 border-top: 1px solid;
+		 margin-top: 5px;
+	 }
+   .main{
+     width:1024px;
+     height:1024px;
+   }
+   .mq-inline {
+     border: 0px;
+     padding: 0px;
+     margin:0px;
+   }
+   .mq-float {
+     border: 0px;
+     padding: 0px;
+     margin:4px;
+   }
+	</style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <!-- <script src="https://unpkg.com/mathquill/build/mathquill.js"></script> -->
+  <script src="../js/libs/mathquill.min.js"></script>
+</head>
+<body>
+  
+  <canvas id="c" width="1903" height="938"></canvas>
+  
+	<div id="info"><a href="https://canvas.msstate.edu/courses/46965" target="_blank" rel="noopener">ABE 3303</a> - January 19, 2021</div>
+
+	<script type="module">
+	 /* import * as THREE from '../build/three.module.js'; */
+   import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+   /* import Stats from './jsm/libs/stats.module.js'; */
+   import Stats from 'https://unpkg.com/three/examples/jsm/libs/stats.module.js';
+	 /* import { GUI } from './jsm/libs/dat.gui.module.js'; */
+	 import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js';
+	 /* import { OrbitControls } from './jsm/controls/OrbitControls.js'; */
+   import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
+
+   const scenes = [];
+
+   var params = { 'temperature': 150 };
+   
+   const gui = new GUI();
+   
+	 let views, t, canvas, renderer, stats ;
+
+	 window.onload = init;
+
+	 function init() {
+
+     var MQ = MathQuill.getInterface(2);
+     var inlineEqns = document.getElementsByClassName('mq-inline');
+     for (let i=0; i<inlineEqns.length; ++i) {
+       MQ.StaticMath(inlineEqns.item(i));
+     }
+     var floatEqns = document.getElementsByClassName('mq-float');
+     for (let i=0; i<floatEqns.length; ++i) {
+       MQ.StaticMath(floatEqns.item(i));
+     }
+
+     gui.add(params, 'temperature', 0, 300);
+     
+		 const balls = 20;
+		 const size = .25;
+
+		 const colors = [
+			 'rgb(0,127,255)', 'rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(0,255,255)',
+			 'rgb(255,0,255)', 'rgb(255,0,127)', 'rgb(255,255,0)', 'rgb(0,255,127)'
+		 ];
+
+		 canvas = document.getElementById( 'c' );
+
+		 renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
+		 renderer.setPixelRatio( window.devicePixelRatio );
+
+		 views = document.querySelectorAll( '.view' );
+
+		 for ( let n=0; n<views.length; n++ ) {
+			 const scene = new THREE.Scene();
+			 scene.background = new THREE.Color( 0xffffff );
+
+			 const geometry0 = new THREE.BufferGeometry();
+			 const geometry1 = new THREE.BufferGeometry();
+
+			 const vertices = [];
+
+			 if ( views[ n ].lattice ) {
+				 const range = balls / 2;
+				 for ( let i = -range; i <= range; i++ ) {
+					 for ( let j = -range; j <= range; j++ ) {
+						 for ( let k = -range; k <= range; k++ ) {
+							 vertices.push( i, j, k );
+						 }
+					 }
+				 }
+			 }
+       else {
+	       for ( let m = 0; m < Math.pow( balls, 3 ); m++ ) {
+					 const i = balls * Math.random() - balls / 2;
+					 const j = balls * Math.random() - balls / 2;
+					 const k = balls * Math.random() - balls / 2;
+					 vertices.push( i, j, k );
+				 }
+			 }
+
+			 geometry0.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+			 geometry1.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices.slice(), 3 ) );
+
+			 const index = Math.floor( colors.length * Math.random() );
+
+			 const canvas2 = document.createElement( 'canvas' );
+			 canvas2.width = 128;
+			 canvas2.height = 128;
+       
+			 const context = canvas2.getContext( '2d' );
+			 context.arc( 64, 64, 64, 0, 2 * Math.PI );
+			 context.fillStyle = colors[ index ];
+			 context.fill();
+       
+			 const texture = new THREE.CanvasTexture( canvas2 );
+
+			 const material = new THREE.PointsMaterial( { size: size, map: texture, transparent: true, alphaTest: 0.1 } );
+
+			 scene.add( new THREE.Points( geometry0, material ) );
+
+			 scene.userData.view = views[ n ];
+			 scene.userData.geometry1 = geometry1;
+
+			 const camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 100 );
+			 camera.position.set( 0, 0, 1.2 * balls );
+			 scene.userData.camera = camera;
+
+			 const controls = new OrbitControls( camera, views[ n ] );
+			 scene.userData.controls = controls;
+
+			 scenes.push( scene );
+		 }
+		 t = 0;
+		 animate();
+	 }
+
+	 function updateSize() {
+		 const width = canvas.clientWidth;
+		 const height = canvas.clientHeight;
+		 if ( canvas.width !== width || canvas.height != height ) {
+			 renderer.setSize( width, height, false );
+		 }
+	 }
+
+	 function animate() {
+		 render();
+		 requestAnimationFrame( animate );
+	 }
+
+	 function render() {
+		 updateSize();
+		 renderer.setClearColor( 0xffffff );
+		 renderer.setScissorTest( false );
+		 renderer.clear();
+
+		 renderer.setClearColor( 0x000000 );
+		 renderer.setScissorTest( true );
+
+		 scenes.forEach( function ( scene ) {
+			 const rect = scene.userData.view.getBoundingClientRect();
+       
+			 // check if it's offscreen. If so skip it
+			 if ( rect.bottom < 0 || rect.top > renderer.domElement.clientHeight ||
+					  rect.right < 0 || rect.left > renderer.domElement.clientWidth ) {
+				      return; // it's off screen
+       }
+
+			 // set the viewport
+			 const width = rect.right - rect.left;
+			 const height = rect.bottom - rect.top;
+			 const left = rect.left;
+			 const bottom = renderer.domElement.clientHeight - rect.bottom;
+
+			 renderer.setViewport( left, bottom, width, height );
+			 renderer.setScissor( left, bottom, width, height );
+
+			 renderer.render( scene, scene.userData.camera );
+
+			 const points = scene.children[ 0 ];
+			 const position = points.geometry.attributes.position;
+
+			 const point = new THREE.Vector3();
+			 const offset = new THREE.Vector3();
+
+			 for ( let i = 0; i < position.count; i ++ ) {
+
+				 point.fromBufferAttribute( scene.userData.geometry1.attributes.position, i );
+
+				 scene.userData.view.displacement( point.x, point.y, point.z, t / 5, offset, params );
+
+				 position.setXYZ( i, point.x + offset.x, point.y + offset.y, point.z + offset.z );
+
+			 }
+
+			 position.needsUpdate = true;
+
+		 } );
+
+		 t ++;
+
+	 }
+
+	</script>
+  
+	<div class="view">
+    <script>
+		 parent = document.scripts[ document.scripts.length - 1 ].parentNode;
+		 parent.displacement = function ( x, y, z, t, target, params ) {
+       var A = params.temperature/1000;
+       var dx = A*Math.random();
+       var dy = A*Math.random();
+       var dz = A*Math.random();
+			 return target.set( x + dx, y + dy, z + dz );
+		 };
+
+		 parent.lattice = false;
 
 		</script>
 
-		</div>
+	</div>
+  
+  <h1>Fundamentals of Thermodynamics</h1>
+  <h2>Review</h2>
+  
+  <p>Previously, we gave some examples of how heat and mass
+    transport phenomena play a critical role in biological
+    systems. We also mentioned a few examples of how we can exploit
+    these transport processes to our advantage.</p>
+  
+  <p>We defined several concepts related to thermodynamics.</p>
+  <ul>
+    <li>Heat sensations (hot and cold) are qualitative assessments
+      of <i>relative</i> temperature differences between two objects
+      (where one of the objects is typically our skin with
+      temperature sensitive nerve endings contained therein).</li>
+    <li>Heat energy is a concept used to describe what is being
+      transferred from one object to another.</li>
+    <li>Thermal kinetic energy is the energy of motion associated
+      with the cumulative motions of the particles within a
+      system. Note that this typically excludes any kinetic energy
+      that might result from the bulk transport of the systems as a
+      whole.</li>
+    <li>Solid, liquid and gaseous are phases of matter. Changes in
+      phase are related to changes in thermal kinetic energy.</li>
+    <li>Temperature as a parameterization (quantitative assessment)
+      of thermal kinetic energy.</li>
+  </ul>
+  <p>We gave a brief overview of the Laws of Thermodynamics</p>
+  <ul>
+    <li><strong>The 0<sup>th</sup> Law of Thermodynamics</strong><br>
+      Temperature can be used to establish a framework for
+      describing the behavior of thermal kinetic energy in material
+      systems. In particular this law establishes thermal
+      equilibrium as the steady state condition that results as the
+      temperature gradient goes to zero.</li>
+    <li><strong>The 1<sup>st</sup> Law of Thermodynamics</strong><br>
+      Energy is conserved! In closed systems, the total energy
+      content is constant. Energy can change form, but cannot be
+      created or destroyed*.</li>
+    <li><strong>The 2<sup>nd</sup> Law of Thermodynamics</strong><br>
+      Heat energy flows from regions of higher temperature to
+      regions of lower temperature.</li>
+  </ul>
+  
+  <p>We discussed how mass diffusion is also fundamentally the
+    result of the random motion of molecules and is driven by thermal
+    kinetic energy. Material will typically diffuse from areas of high
+    concentration to areas of lower concentration. The random nature
+    of particle interactions tends to increase the disorder of a
+    system (entropy). The rate of diffusion is related to both the
+    magnitude of the concentration gradient as well as the amount of
+    thermal kinetic energy present.</p>
+  
+  <h2>Fundamentals</h2>
+  
+  <p>Historically, there were two fields of study that resulted in
+    our modern understanding of heat and mass transport.</p>
+  
+  <p><strong>Thermodynamics</strong> is concerned with the
+    macroscopic (bulk) behavior of materials and fluids in response to
+    changes in temperature. In particular this field led to the
+    development of practical heat engines (steam engines,
+    refrigeration, etc.).</p>
+  
+  <p><strong>Statistical Mechanics</strong> is concerned with the
+    microscopic behavior of atoms in solids and fluids. From the study
+    of the motion of individual atoms and their interactions with
+    other atoms, they were able to explain the origin of many of the
+    bulk properties of matter that were being measured
+    experimentally.</p>
+  
+  <p>While we will mostly be concerned with thermodynamic processes
+    in this course, it is worth it to look briefly at some of the
+    results from statistical mechanics to assist with our conceptual
+    understanding of these processes and further develop our intuition
+    about the thermal behavior of material and biological systems.</p>
+  
+  <h2>Statistical Mechanics</h2>
+  
+  <h3>Internal Energy</h3>
+  
+  <p>It is important to understand where thermal kinetic energy
+    resides in materials. Kinetic energy can be sorted into three
+    primary categories: translational, vibrational, and
+    rotational.</p>
+  
+  <p>Translation refers to the motion associated with the center of
+    mass of an object. Translational kinetic energy is defined in the
+    Newtonian sense as:</p>
+  <div class="math">
+    <span class="mq-float">
+      K = \frac{1}{2}mv^2
+    </span>
+  </div>
 
-    <h1>Fundamentals of Thermodynamics</h1>
-    <h2>Review</h2>
-    
-    <p>Previously, we gave some examples of how heat and mass
-      transport phenomena play a critical role in biological
-      systems. We also mentioned a few examples of how we can exploit
-      these transport processes to our advantage.</p>
-    
-    <p>We defined several concepts related to thermodynamics.</p>
-    <ul>
-      <li>Heat sensations (hot and cold) are qualitative assessments
-        of <i>relative</i> temperature differences between two objects
-        (where one of the objects is typically our skin with
-        temperature sensitive nerve endings contained therein).</li>
-      <li>Heat energy is a concept used to describe what is being
-        transferred from one object to another.</li>
-      <li>Thermal kinetic energy is the energy of motion associated
-        with the cumulative motions of the particles within a
-        system. Note that this typically excludes any kinetic energy
-        that might result from the bulk transport of the systems as a
-        whole.</li>
-      <li>Solid, liquid and gaseous are phases of matter. Changes in
-        phase are related to changes in thermal kinetic energy.</li>
-      <li>Temperature as a parameterization (quantitative assessment)
-        of thermal kinetic energy.</li>
-    </ul>
-    <p>We gave a brief overview of the Laws of Thermodynamics</p>
-    <ul>
-      <li><strong>The 0<sup>th</sup> Law of Thermodynamics</strong><br>
-        Temperature can be used to establish a framework for
-        describing the behavior of thermal kinetic energy in material
-        systems. In particular this law establishes thermal
-        equilibrium as the steady state condition that results as the
-        temperature gradient goes to zero.</li>
-      <li><strong>The 1<sup>st</sup> Law of Thermodynamics</strong><br>
-        Energy is conserved! In closed systems, the total energy
-        content is constant. Energy can change form, but cannot be
-        created or destroyed*.</li>
-      <li><strong>The 2<sup>nd</sup> Law of Thermodynamics</strong><br>
-        Heat energy flows from regions of higher temperature to
-        regions of lower temperature.</li>
-    </ul>
-    
-    <p>We discussed how mass diffusion is also fundamentally the
-      result of the random motion of molecules and is driven by thermal
-      kinetic energy. Material will typically diffuse from areas of high
-      concentration to areas of lower concentration. The random nature
-      of particle interactions tends to increase the disorder of a
-      system (entropy). The rate of diffusion is related to both the
-      magnitude of the concentration gradient as well as the amount of
-      thermal kinetic energy present.</p>
-    
-    <h2>Fundamentals</h2>
-    
-    <p>Historically, there were two fields of study that resulted in
-      our modern understanding of heat and mass transport.</p>
-    
-    <p><strong>Thermodynamics</strong> is concerned with the
-      macroscopic (bulk) behavior of materials and fluids in response to
-      changes in temperature. In particular this field led to the
-      development of practical heat engines (steam engines,
-      refrigeration, etc.).</p>
-    
-    <p><strong>Statistical Mechanics</strong> is concerned with the
-      microscopic behavior of atoms in solids and fluids. From the study
-      of the motion of individual atoms and their interactions with
-      other atoms, they were able to explain the origin of many of the
-      bulk properties of matter that were being measured
-      experimentally.</p>
-    
-    <p>While we will mostly be concerned with thermodynamic processes
-      in this course, it is worth it to look briefly at some of the
-      results from statistical mechanics to assist with our conceptual
-      understanding of these processes and further develop our intuition
-      about the thermal behavior of material and biological systems.</p>
-    
-    <h2>Statistical Mechanics</h2>
-    
-    <h3>Internal Energy</h3>
-    
-    <p>It is important to understand where thermal kinetic energy
-      resides in materials. Kinetic energy can be sorted into three
-      primary categories: translational, vibrational, and
-      rotational.</p>
-    
-    <p>Translation refers to the motion associated with the center of
-      mass of an object. Translational kinetic energy is defined in the
-      Newtonian sense as:</p>
-    <div class="math">
-      <span class="mq-float">
-        K = \frac{1}{2}mv^2
-      </span>
-    </div>
+  <p>Here, <span class="mq-inline">m</span> is the
+    mass of the object
+    and <span class="mq-inline">v</span> is the
+    translational velocity of the object's center of mass.</p>
+  
+  <p>Vibration refers to oscillatory motion with respect to some
+    location. Vibration is the result of the interplay between an
+    object's motion and a conservative potential field exerting a
+    central force on the object. The energy in this mode is split
+    between kinetic and potential energy. Potential energy typically
+    has the form:</p>
 
-    <p>Here, <span class="mq-inline">m</span> is the
-      mass of the object
-      and <span class="mq-inline">v</span> is the
-      translational velocity of the object's center of mass.</p>
-    
-    <p>Vibration refers to oscillatory motion with respect to some
-      location. Vibration is the result of the interplay between an
-      object's motion and a conservative potential field exerting a
-      central force on the object. The energy in this mode is split
-      between kinetic and potential energy. Potential energy typically
-      has the form:</p>
+  <div class="math">
+    <span class="mq-float">
+      U = \mathbf{F} \cdot \Delta \mathbf{x}
+    </span>
+  </div>
 
-    <div class="math">
-      <span class="mq-float">
-        U = \mathbf{F} \cdot \Delta \mathbf{x}
-      </span>
-    </div>
+  <p><span class="mq-inline">\mathbf{F}</span> is the
+    strength of the central force
+    and <span class="mq-inline">\mathbf{x}</span> is
+    the distance over which the force is applied.</p>
 
-    <p><span class="mq-inline">\mathbf{F}</span> is the
-      strength of the central force
-      and <span class="mq-inline">\mathbf{x}</span> is
-      the distance over which the force is applied.</p>
+  <p>Rotational energy is stored in the rotational motion of an
+    extended body about some fixed axis. Rotational energy typically
+    has the form:</p>
 
-    <p>Rotational energy is stored in the rotational motion of an
-      extended body about some fixed axis. Rotational energy typically
-      has the form:</p>
+  <div class="math">
+    <span class="mq-float">
+      E_{rot} = \frac{1}{2}I\omega^2
+    </span>
+  </div>
+  
+  <p><span class="mq-inline">I</span> is the moment of
+    inertia and <span class="mq-inline">\omega</span>
+    is the angular velocity (rotational analogs to mass and
+    velocity).</p>
+  
+  <p>Within these three categories, energy can be stored in multiple
+    modes. Modes are distinct translational, vibrational, or
+    rotational motions. More complex molecules will typically
+    possess more of these modes.</p>
+  
+  <p>For example, a monoatomic substance has only translational
+    modes. There are no internal vibrational or rotational
+    modes.</p>
+  
+  <p>A diatomic molecule, on the other hand has an additional
+    vibrational mode along the axis joining the atoms and two
+    rotational modes about the axes perpendicular to the axis
+    joining the two atoms.</p>
+  
+  <p>From statistical mechanics, we learn that internal energy is
+    typically distributed fairly evenly between these modes within
+    an individual molecule. That being said, each individual
+    molecule within a system may possess differing amounts of
+    internal energy. If we examine the behavior of substances with a
+    very large number of molecules, it can be shown that the
+    distribution of internal energy follows the Maxwell-Boltzmann
+    distribution.</p>
+  
+  <p>If we restrict our attention for the moment to monoatomic ideal
+    gases, we see that the internal energy resides solely in the
+    translational kinetic energy. Given the Maxwell-Boltzmann
+    distribution of this energy, it is possible to relate the
+    average kinetic energy to the temperature.</p>
 
-    <div class="math">
-      <span class="mq-float">
-        E_{rot} = \frac{1}{2}I\omega^2
-      </span>
-    </div>
-    
-    <p><span class="mq-inline">I</span> is the moment of
-      inertia and <span class="mq-inline">\omega</span>
-      is the angular velocity (rotational analogs to mass and
-      velocity).</p>
-    
-    <p>Within these three categories, energy can be stored in multiple
-      modes. Modes are distinct translational, vibrational, or
-      rotational motions. More complex molecules will typically
-      possess more of these modes.</p>
-    
-    <p>For example, a monoatomic substance has only translational
-      modes. There are no internal vibrational or rotational
-      modes.</p>
-    
-    <p>A diatomic molecule, on the other hand has an additional
-      vibrational mode along the axis joining the atoms and two
-      rotational modes about the axes perpendicular to the axis
-      joining the two atoms.</p>
-    
-    <p>From statistical mechanics, we learn that internal energy is
-      typically distributed fairly evenly between these modes within
-      an individual molecule. That being said, each individual
-      molecule within a system may possess differing amounts of
-      internal energy. If we examine the behavior of substances with a
-      very large number of molecules, it can be shown that the
-      distribution of internal energy follows the Maxwell-Boltzmann
-      distribution.</p>
-    
-    <p>If we restrict our attention for the moment to monoatomic ideal
-      gases, we see that the internal energy resides solely in the
-      translational kinetic energy. Given the Maxwell-Boltzmann
-      distribution of this energy, it is possible to relate the
-      average kinetic energy to the temperature.</p>
+  <div class="math">
+    <span class="mq-float">
+      \bar{K} = \frac{1}{2} m \bar{v^2} = \frac{3}{2} k T
+    </span>
+  </div>
+  
+  <p>Here, <span class="mq-inline">\bar{v}</span> is
+    the average particle velocity,
+    <span class="mq-inline">k</span> is Boltzmann's
+    constant
+    <span class="mq-inline">(1.38\cdot10^{-23})</span>
+    J/K, and <span class="mq-inline">T</span> is
+    the average temperature. Since translational kinetic energy is
+    the only mode available for energy to be stored, we can relate
+    this quantity to total internal energy by multiplying by the
+    number of particles in the system.</p>
 
-    <div class="math">
-      <span class="mq-float">
-        \bar{K} = \frac{1}{2} m \bar{v^2} = \frac{3}{2} k T
-      </span>
-    </div>
-    
-    <p>Here, <span class="mq-inline">\bar{v}</span> is
-      the average particle velocity,
-      <span class="mq-inline">k</span> is Boltzmann's
-      constant
-      <span class="mq-inline">(1.38\cdot10^{-23})</span>
-      J/K, and <span class="mq-inline">T</span> is
-      the average temperature. Since translational kinetic energy is
-      the only mode available for energy to be stored, we can relate
-      this quantity to total internal energy by multiplying by the
-      number of particles in the system.</p>
+  <div class="math">
+    <span class="mq-float">
+      U = N (\frac{3}{2} k T) = n N_A (\frac{3}{2} k T) = \frac{3}{2} n R T
+    </span>
+  </div>
+  
+  <p>Here, <span class="mq-inline">N = n N_A</span> is
+    the number of atoms in the
+    system, <span class="mq-inline">n</span> is the
+    number of
+    moles, <span class="mq-inline">N_A</span> is
+    Avogadro's
+    number <span class="mq-inline">(6.022\cdot10^{23}</span>
+    mol<sup>-1</sup>), and <span class="mq-inline">R =
+    k N_a</span> is the universal gas constant (8.314 J/mol K).</p>
 
-    <div class="math">
-      <span class="mq-float">
-        U = N (\frac{3}{2} k T) = n N_A (\frac{3}{2} k T) = \frac{3}{2} n R T
-      </span>
-    </div>
-    
-    <p>Here, <span class="mq-inline">N = n N_A</span> is
-      the number of atoms in the
-      system, <span class="mq-inline">n</span> is the
-      number of
-      moles, <span class="mq-inline">N_A</span> is
-      Avogadro's
-      number <span class="mq-inline">(6.022\cdot10^{23}</span>
-      mol<sup>-1</sup>), and <span class="mq-inline">R =
-        k N_a</span> is the universal gas constant (8.314 J/mol K).</p>
+  <p>One other thing we can obtain from the average kinetic energy
+    is the average velocity of the monoatomic atoms in this ideal
+    gas. The root mean square (rms) speed is given by:</p>
 
-    <p>One other thing we can obtain from the average kinetic energy
-      is the average velocity of the monoatomic atoms in this ideal
-      gas. The root mean square (rms) speed is given by:</p>
+  <div class="math">
+    <span class="mq-float">
+      v_{rms} = \sqrt{\bar{v^2}} = \sqrt{\frac{3 k T}{m}}
+    </span>
+  </div>
+  
+  <h3>Heat Energy</h3>
+  
+  <p>During the early study of thermodynamics, it was believed that
+    there was a substance transferred between objects that was
+    responsible for the changes in temperature. This caloric fluid
+    concept was later replace by the notion of <strong>heat
+    energy</strong>. To distinguish heat energy from thermal kinetic
+    energy, we will be using thermal kinetic energy to describe the
+    amount of heat energy present in the system (or a portion of it)
+    and heat energy to refer to the transfer of thermal kinetic
+    energy from one location to another (or one portion of the
+    system to another).</p>
+  
+  <h3>Specific Heat</h3>
 
-    <div class="math">
-      <span class="mq-float">
-        v_{rms} = \sqrt{\bar{v^2}} = \sqrt{\frac{3 k T}{m}}
-      </span>
-    </div>
-    
-    <h3>Heat Energy</h3>
-    
-    <p>During the early study of thermodynamics, it was believed that
-      there was a substance transferred between objects that was
-      responsible for the changes in temperature. This caloric fluid
-      concept was later replace by the notion of <strong>heat
-      energy</strong>. To distinguish heat energy from thermal kinetic
-      energy, we will be using thermal kinetic energy to describe the
-      amount of heat energy present in the system (or a portion of it)
-      and heat energy to refer to the transfer of thermal kinetic
-      energy from one location to another (or one portion of the
-      system to another).</p>
-    
-    <h3>Specific Heat</h3>
+  <p><strong>Specific heat</strong> is the amount of energy required
+    to raise the temperature of a given quantity of material by a
+    given temperature increment.</p>
 
-    <p><strong>Specific heat</strong> is the amount of energy required
-      to raise the temperature of a given quantity of material by a
-      given temperature increment.</p>
+  <div class="math">
+    <span class="mq-float">
+      c_P = \frac{1}{m} \frac{\Delta Q}{\Delta T}
+    </span>
+  </div>
+  
+  <p>This quantity can vary with pressure, temperature, and
+    density. For solids and liquids specific heat is measured under
+    constant pressure conditions. Although there is some temperature
+    dependence in these measurements, they are typically very
+    small. For the purposes of this course, we will assume that the
+    specific heat for liquids and solids is roughly constant over
+    the temperatures and pressures we will be working with.</p>
+  
+  <p>For gases, the situation is more complex. There are two
+    specific heats that are typically measured; one under constant
+    pressure
+    conditions, <span class="mq-inline">c_P</span> ,
+    and the other under constant volume conditions,
+    <span class="mq-inline">c_V</span> . These values
+    often have a more significant dependence on temperature. In our
+    problem sets we will explicitly state if this temperature
+    dependence is significant enough to consider and provide the
+    relevant formulas for computing specific heat in those
+    circumstances.</p>
+  
+  <p>One <strong>calorie</strong> is the amount of heat energy
+    required to raise one gram of water by one degree Celsius (or
+    Kelvin) at 20 degrees Celsius and one atmosphere of pressure. In
+    SI units this is 4.186 J.</p>
+  
+  <p>One food Calorie is actually 1000 calories (1 kcal).</p>
+  
+  <p>The equation above can be rearranged to give us a formula for
+    relating heat energy transfer to change in temperature.</p>
+  
+  <div class="math">
+    <span class="mq-float">
+      \Delta Q = m c_p \Delta T
+    </span>
+  </div>
 
-    <div class="math">
-      <span class="mq-float">
-        c_P = \frac{1}{m} \frac{\Delta Q}{\Delta T}
-      </span>
-    </div>
-    
-    <p>This quantity can vary with pressure, temperature, and
-      density. For solids and liquids specific heat is measured under
-      constant pressure conditions. Although there is some temperature
-      dependence in these measurements, they are typically very
-      small. For the purposes of this course, we will assume that the
-      specific heat for liquids and solids is roughly constant over
-      the temperatures and pressures we will be working with.</p>
-    
-    <p>For gases, the situation is more complex. There are two
-      specific heats that are typically measured; one under constant
-      pressure
-      conditions, <span class="mq-inline">c_P</span> ,
-      and the other under constant volume conditions,
-      <span class="mq-inline">c_V</span> . These values
-      often have a more significant dependence on temperature. In our
-      problem sets we will explicitly state if this temperature
-      dependence is significant enough to consider and provide the
-      relevant formulas for computing specific heat in those
-      circumstances.</p>
-    
-    <p>One <strong>calorie</strong> is the amount of heat energy
-      required to raise one gram of water by one degree Celsius (or
-      Kelvin) at 20 degrees Celsius and one atmosphere of pressure. In
-      SI units this is 4.186 J.</p>
-    
-    <p>One food Calorie is actually 1000 calories (1 kcal).</p>
-    
-    <p>The equation above can be rearranged to give us a formula for
-      relating heat energy transfer to change in temperature.</p>
-    
-    <div class="math">
-      <span class="mq-float">
-        \Delta Q = m c_p \Delta T
-      </span>
-    </div>
+  <p>The table below provides specific heat values for some common
+    materials. Unless stated otherwise, values are for 25 C and 1
+    atm.</p>
 
-    <p>The table below provides specific heat values for some common
-      materials. Unless stated otherwise, values are for 25 C and 1
-      atm.</p>
-
-    <table align="center">
-      <tbody>
+  <table align="center">
+    <tbody>
       <tr>
         <th align="center">Material</th>
         <th colspan=2 align="center">Specific Heat</th>
@@ -659,21 +657,21 @@
       <tr><td>Mercury</td>      <td align="right"> 140</td><td align="right">  33</td></tr>
       <tr><td>Lead</td>         <td align="right"> 130</td><td align="right">  31</td></tr>
       <tr><td>Gold</td>         <td align="right"> 130</td><td align="right">  31</td></tr>
-      </tbody>
-    </table>
+    </tbody>
+  </table>
 
-    <h3 style="text-align: left;">State and Rate Variables</h3>
-    
-    <p>State variables describe the instantaneous state of a portion of the system at a specific location (or region).</p>
-    <ul>
-      <li>State variables are often measured directly or computed from other state variables.</li>
-      <li>State variables can also be expressed as integrals of rate variables.</li>
-    </ul>
-    <p>Rate variables describe the change in state variables with respect to time or location.</p>
-    <ul>
-      <li>Rate variables are often expressed as derivatives of state variables.</li>
-      <li>We can also use finite differences as approximations to derivatives</li>
-    </ul>
+  <h3 style="text-align: left;">State and Rate Variables</h3>
+  
+  <p>State variables describe the instantaneous state of a portion of the system at a specific location (or region).</p>
+  <ul>
+    <li>State variables are often measured directly or computed from other state variables.</li>
+    <li>State variables can also be expressed as integrals of rate variables.</li>
+  </ul>
+  <p>Rate variables describe the change in state variables with respect to time or location.</p>
+  <ul>
+    <li>Rate variables are often expressed as derivatives of state variables.</li>
+    <li>We can also use finite differences as approximations to derivatives</li>
+  </ul>
 
-  </body>
+</body>
 </html>
