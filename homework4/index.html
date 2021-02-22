@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>ABE3303 - Homework #4 - Cardiopulmonary Bypass</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="https://unpkg.com/mathquill/build/mathquill.css">
+	<style>
+	 * {
+		 box-sizing: border-box;
+		 -moz-box-sizing: border-box;
+	 }
+
+	 body {
+		 background-color: #fff;
+		 color: #444;
+	   font-family: Monospace;
+	   font-size: 13px;
+	   line-height: 24px;
+	   overscroll-behavior: none;
+		 margin: auto;
+		 padding: .5in;
+		 max-width: 7in;
+		 text-align: justify;
+	 }
+
+	 a {
+		 color: #08f;
+	   text-decoration: none;
+	 }
+
+   a:hover {
+	   text-decoration: underline;
+   }
+
+   button {
+	   cursor: pointer;
+	   text-transform: uppercase;
+   }
+
+   #info {
+	   position: absolute;
+	   top: 0px;
+	   width: 100%;
+	   padding: 10px;
+	   box-sizing: border-box;
+	   text-align: center;
+	   -moz-user-select: none;
+	   -webkit-user-select: none;
+	   -ms-user-select: none;
+	   user-select: none;
+	   pointer-events: none;
+	   z-index: 1; /* TODO Solve this in HTML */
+		 left: 0px;
+	 }
+
+   a, button, input, select {
+	   pointer-events: auto;
+   }
+
+   .dg.ac {
+	   -moz-user-select: none;
+	   -webkit-user-select: none;
+	   -ms-user-select: none;
+	   user-select: none;
+	   z-index: 2 !important; /* TODO Solve this in HTML */
+   }
+
+   #overlay {
+	   position: absolute;
+	   z-index: 2;
+	   top: 0;
+	   left: 0;
+	   width: 100%;
+	   height: 100%;
+	   display: flex;
+	   align-items: center;
+	   justify-content: center;
+	   background: rgba(0,0,0,0.7);
+   }
+
+	 #overlay button {
+		 background: #ffffff;
+		 border: 0;
+		 color: #000000;
+		 padding: 16px 20px;
+		 text-transform: uppercase;
+		 cursor: pointer;
+	 }
+
+   #notSupported {
+	   width: 50%;
+	   margin: auto;
+	   background-color: #f00;
+	   margin-top: 20px;
+	   padding: 10px;
+   }
+   
+	 .view {
+		 width: 5in;
+		 height: 5in;
+		 margin: auto;
+	 }
+
+	 #c {
+		 position: fixed;
+		 left: 0px; top: 0px;
+		 width: 100%;
+		 height: 100%;
+		 background-color: #fff;
+		 z-index: -1;
+	 }
+
+	 .math {
+		 text-align: center;
+	 }
+
+	 .math-frac {
+		 display: inline-block;
+		 vertical-align: middle;
+	 }
+
+	 .math-num {
+		 display: block;
+	 }
+
+	 .math-denom {
+		 display: block;
+		 border-top: 1px solid;
+	 }
+
+	 .math-sqrt {
+		 display: inline-block;
+		 transform: scale(1, 1.3);
+	 }
+
+	 .math-sqrt-stem {
+		 display: inline-block;
+		 border-top: 1px solid;
+		 margin-top: 5px;
+	 }
+   .main{
+     width:1024px;
+     height:1024px;
+   }
+   .mq-inline {
+     border: 0px;
+     padding: 0px;
+     margin:0px;
+   }
+   .mq-float {
+     border: 0px;
+     padding: 0px;
+     margin:4px;
+   }
+	</style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <!-- <script src="https://unpkg.com/mathquill/build/mathquill.js"></script> -->
+  <script src="./js/libs/mathquill.min.js"></script>
+</head>
+<body>
+  
+  <canvas id="c" width="1903" height="938"></canvas>
+  
+	<div id="info"><a href="https://canvas.msstate.edu/courses/46965" target="_blank" rel="noopener">ABE 3303</a> - February 23, 2021</div>
+
+	<script type="module">
+	 /* import * as THREE from '../build/three.module.js'; */
+   import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+   /* import Stats from './jsm/libs/stats.module.js'; */
+   import Stats from 'https://unpkg.com/three/examples/jsm/libs/stats.module.js';
+	 /* import { GUI } from './jsm/libs/dat.gui.module.js'; */
+	 import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js';
+	 /* import { OrbitControls } from './jsm/controls/OrbitControls.js'; */
+   import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
+
+   const scenes = [];
+   
+   const gui = new GUI();
+   
+	 let views, t, canvas, renderer, stats ;
+
+	 window.onload = init;
+
+	 function init() {
+
+     var MQ = MathQuill.getInterface(2);
+     var inlineEqns = document.getElementsByClassName('mq-inline');
+     for (let i=0; i<inlineEqns.length; ++i) {
+       MQ.StaticMath(inlineEqns.item(i));
+     }
+     var floatEqns = document.getElementsByClassName('mq-float');
+     for (let i=0; i<floatEqns.length; ++i) {
+       MQ.StaticMath(floatEqns.item(i));
+     }
+
+		 const balls = 20;
+		 const size = .25;
+
+		 const colors = [
+			 'rgb(0,127,255)', 'rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(0,255,255)',
+			 'rgb(255,0,255)', 'rgb(255,0,127)', 'rgb(255,255,0)', 'rgb(0,255,127)'
+		 ];
+
+		 canvas = document.getElementById( 'c' );
+
+		 renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
+		 renderer.setPixelRatio( window.devicePixelRatio );
+
+		 views = document.querySelectorAll( '.view' );
+
+		 for ( let n=0; n<views.length; n++ ) {
+			 const scene = new THREE.Scene();
+			 scene.background = new THREE.Color( 0xffffff );
+
+			 const geometry0 = new THREE.BufferGeometry();
+			 const geometry1 = new THREE.BufferGeometry();
+
+			 const vertices = [];
+
+			 if ( views[ n ].lattice ) {
+				 const range = balls / 2;
+				 for ( let i = -range; i <= range; i++ ) {
+					 for ( let j = -range; j <= range; j++ ) {
+						 for ( let k = -range; k <= range; k++ ) {
+							 vertices.push( i, j, k );
+						 }
+					 }
+				 }
+			 }
+       else {
+	       for ( let m = 0; m < Math.pow( balls, 3 ); m++ ) {
+					 const i = balls * Math.random() - balls / 2;
+					 const j = balls * Math.random() - balls / 2;
+					 const k = balls * Math.random() - balls / 2;
+					 vertices.push( i, j, k );
+				 }
+			 }
+
+			 geometry0.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+			 geometry1.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices.slice(), 3 ) );
+
+			 const index = Math.floor( colors.length * Math.random() );
+
+			 const canvas2 = document.createElement( 'canvas' );
+			 canvas2.width = 128;
+			 canvas2.height = 128;
+       
+			 const context = canvas2.getContext( '2d' );
+			 context.arc( 64, 64, 64, 0, 2 * Math.PI );
+			 context.fillStyle = colors[ index ];
+			 context.fill();
+       
+			 const texture = new THREE.CanvasTexture( canvas2 );
+
+			 const material = new THREE.PointsMaterial( { size: size, map: texture, transparent: true, alphaTest: 0.1 } );
+
+			 scene.add( new THREE.Points( geometry0, material ) );
+
+			 scene.userData.view = views[ n ];
+			 scene.userData.geometry1 = geometry1;
+
+			 const camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 100 );
+			 camera.position.set( 0, 0, 1.2 * balls );
+			 scene.userData.camera = camera;
+
+			 const controls = new OrbitControls( camera, views[ n ] );
+			 scene.userData.controls = controls;
+
+			 scenes.push( scene );
+		 }
+		 t = 0;
+		 animate();
+	 }
+
+	 function updateSize() {
+		 const width = canvas.clientWidth;
+		 const height = canvas.clientHeight;
+		 if ( canvas.width !== width || canvas.height != height ) {
+			 renderer.setSize( width, height, false );
+		 }
+	 }
+
+	 function animate() {
+		 render();
+		 requestAnimationFrame( animate );
+	 }
+
+	 function render() {
+		 updateSize();
+		 renderer.setClearColor( 0xffffff );
+		 renderer.setScissorTest( false );
+		 renderer.clear();
+
+		 renderer.setClearColor( 0x000000 );
+		 renderer.setScissorTest( true );
+
+		 scenes.forEach( function ( scene ) {
+			 const rect = scene.userData.view.getBoundingClientRect();
+       
+			 // check if it's offscreen. If so skip it
+			 if ( rect.bottom < 0 || rect.top > renderer.domElement.clientHeight ||
+					  rect.right < 0 || rect.left > renderer.domElement.clientWidth ) {
+				      return; // it's off screen
+       }
+
+			 // set the viewport
+			 const width = rect.right - rect.left;
+			 const height = rect.bottom - rect.top;
+			 const left = rect.left;
+			 const bottom = renderer.domElement.clientHeight - rect.bottom;
+
+			 renderer.setViewport( left, bottom, width, height );
+			 renderer.setScissor( left, bottom, width, height );
+
+			 renderer.render( scene, scene.userData.camera );
+
+			 const points = scene.children[ 0 ];
+			 const position = points.geometry.attributes.position;
+
+			 const point = new THREE.Vector3();
+			 const offset = new THREE.Vector3();
+
+			 for ( let i = 0; i < position.count; i ++ ) {
+
+				 point.fromBufferAttribute( scene.userData.geometry1.attributes.position, i );
+
+				 scene.userData.view.displacement( point.x, point.y, point.z, t / 5, offset );
+
+				 position.setXYZ( i, point.x + offset.x, point.y + offset.y, point.z + offset.z );
+
+			 }
+
+			 position.needsUpdate = true;
+
+		 } );
+
+		 t ++;
+
+	 }
+
+	</script>
+  <h1>Designing a Heating Element for a Cardiopulmonary Bypass Machine</h1>
+
+  <p>A heart bypass machine takes over for the patient's heart and
+    lungs while one or both of them are involved in a surgical
+    procedure such as a cardiopulmonary bypass. Since the surrounding
+    environment is typically at a lower temperature than the body, the
+    blood will begin loosing heat once outside of the body. In this
+    exercise we will be computing the rate of heat loss from the blood
+    while it is outside of the body. We will then design a heating
+    element to warm the blood back up before pumping it back into the
+    body so that it reenters the body at near body temperature.</p>
+
+  <p>We will make a few simplifying assumptions to make the math
+    tractable, but otherwise you should already know enough about heat
+    transfer to begin solving this problem. Any missing pieces will be
+    hashed out in the discussion and in the next two classes.</p>
+
+  <ul>
+    <li>The blood starts out at <span class="mq-inline">98.6^\circ</span>F,
+      and the ambient room temperature is fixed at
+      <span class="mq-inline">68.0^\circ</span>F.</li>
+    <li>The fluid flow rate through the pump is 5 liters per minute.</li>
+    <li>Let's assume that there is 3 meters of nylon medical grade
+      tubing (thermal conductivity 0.30 W/m.K) from the patient to the
+      bypass machine, and another 3 meters from the machine back to
+      the patient. The inner radius of the tubing is 5mm, and the
+      outer radius is 7mm.</li>
+    <li>We will treat the bypass machine as a
+      black box with a dial on it that we can use to increase or
+      decrease the amount of heat transferred to/from the blood while
+      inside the machine. Assume that when the dial is set to zero,
+      there is no net heat loss in the blood while it is inside of the
+      machine.</li>
+  </ul>
+  
+  <p>So, we are primarily interested in exactly how much heat is lost
+    while the blood is in the tubes running to and from the machine,
+    so that we can determine how much additional heat needs to be put
+    into the blood at the machine so that it is within 1oF of body
+    temperature (i.e. <span class="mq-inline">97.6^\circ</span>F to
+    <span class="mq-inline">99.6^\circ</span>F) when it reenters the
+    body.</p>
+
+  <h2>Some hints</h2>
+  <ul>
+    <li>Assume blood is essentially water. Use the thermal properties
+      of water for your calculations.</li>
+    <li>Fluid flow rate should be converted into a flow velocity in
+      the tube.</li>
+    <li>The tube should be divided up into some number of discrete
+      segments</li>
+    <li>Keep track of the temperature of the fluid at the ends of each
+      segment.</li>
+    <li>Compute the rate of heat flow out of the tube for each segment
+      based on the average temperature in each segment of the tube.</li>
+    <li>Ignore conductive heat transfer through the ends of the
+      segments.</li>
+    <li>Compute the change in temperature in the blood due to the loss
+      of thermal energy occuring over the length of time the blood
+      will spend traveling through each segment of the tube.</li>
+    <li>You will likely have to iterate through the calculations
+      multiple times updating the temperatures in the tube until they
+      stop changing.</li>
+  </ul>
+  <div class="math">
+    <span class="mq-float">
+      K = \frac{1}{2}mv^2
+    </span>
+  </div>
+
+  <p>Here, <span class="mq-inline">m</span> is the
+    mass of the object
+    and <span class="mq-inline">v</span> is the
+    translational velocity of the object's center of mass.</p>
+  
+  <p>The table below provides specific heat values for some common
+    materials. Unless stated otherwise, values are for 25 C and 1
+    atm.</p>
+
+  <table align="center">
+    <tbody>
+      <tr>
+        <th align="center">Material</th>
+        <th colspan=2 align="center">Specific Heat</th>
+      </tr>
+      <tr>
+        <th></th>
+        <th><span class="mq-inline">(\mathrm{J / kg} \cdot ^{\circ}\mathrm{C})</span></th>
+        <th><span class="mq-inline">(\mathrm{cal / kg} \cdot ^{\circ}\mathrm{C})</span></th>
+      </tr>
+      <tr><td>Water Liquid</td> <td align="right">4186</td><td align="right">1000</td></tr>
+    </tbody>
+  </table>
+
+</body>
+</html>
